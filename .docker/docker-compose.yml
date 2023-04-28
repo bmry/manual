@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+    db:
+        image: mariadb
+        volumes:
+            - "db_app:/var/lib/mysql"
+        environment:
+            MARIADB_ROOT_PASSWORD: manual
+            MARIADB_DATABASE: manual
+            MARIADB_USER: manual
+            MARIADB_PASSWORD: manual
+        ports:
+            - 3306:3306
+        networks:
+            - symfony
+    php:
+        build:
+            context: ./php
+            args:
+                TIMEZONE: ${TIMEZONE}
+        volumes:
+            - ./../:/var/www/symfony/
+        networks:
+            - symfony
+    nginx:
+        build:
+            context: ./nginx
+        volumes:
+            - ./../:/var/www/symfony/
+        ports:
+            - 8001:80
+        networks:
+            - symfony
+        env_file:
+            - .env.nginx.local
+
+volumes:
+    db_app:
+
+networks:
+    symfony:
