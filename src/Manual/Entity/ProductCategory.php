@@ -109,4 +109,9 @@ class ProductCategory
     {
         return $this->getName();
     }
+
+    public function getChildProducts()
+    {
+        return $this->childProducts;
+    }
 }

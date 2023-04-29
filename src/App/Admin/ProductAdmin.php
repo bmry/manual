@@ -15,6 +15,7 @@ class ProductAdmin extends AbstractAdmin
         $form->add('name', TextType::class);
         $form->add('slug', TextType::class);
         $form->add('category', ModelListType::class);
+        $form->add('parent', ModelListType::class);
     }
 
     protected function configureListFields(ListMapper $list): void
