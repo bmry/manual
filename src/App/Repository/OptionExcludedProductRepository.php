@@ -3,10 +3,10 @@
 namespace App\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 use Manual\Entity\Option;
 use Manual\Entity\OptionExcludedProduct;
+use Manual\Entity\Product;
 
 /**
  * @extends ServiceEntityRepository<OptionExcludedProduct>
@@ -41,15 +41,35 @@ class OptionExcludedProductRepository extends ServiceEntityRepository
         }
     }
 
+    /**
+     * Get products and products of product excluded by a given option.
+     *
+     * @param Option $option
+     * @return array
+     */
      public function getOptionExcludedProductSlug(Option $option): array
      {
-         return $this->createQueryBuilder('oep')
-             ->select('p.slug')
-             ->leftJoin('Manual\Entity\Product', 'p', "WITH", 'oep.product = p.id')
-             ->where('oep.option = :option')
-             ->setParameter('option', $option)
-             ->getQuery()
-             ->getResult(Query::HYDRATE_SCALAR_COLUMN)
-         ;
+         $excludedProductList = [];
+         $options = $this->findBy([
+             'optionId' => $option,
+         ]);
+         foreach ($options as $option) {
+             $product = $option->getProduct();
+
+             //Skip if a product's parent has been processed.
+             if (in_array($product->getSlug(), $excludedProductList)) {
+                 continue;
+             }
+
+             if ($product->isParent()) {
+                 foreach ($product->getChildProducts() as $childProduct) {
+                     $excludedProductList[] = $childProduct->getSlug();
+                 }
+             } else {
+                 $excludedProductList[] = $product->getSlug();
+             }
+         }
+
+         return $excludedProductList;
      }
 }
